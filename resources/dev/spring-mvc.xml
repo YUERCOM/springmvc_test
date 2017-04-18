@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" 
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans.xsd 
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop.xsd 
+           http://www.springframework.org/schema/context 
+           http://www.springframework.org/schema/context/spring-context.xsd 
+           http://www.springframework.org/schema/mvc 
+           http://www.springframework.org/schema/mvc/spring-mvc.xsd 
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!-- 启用aop注解 -->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+    <!-- 默认的注解映射的支持 -->  
+    <mvc:annotation-driven enable-matrix-variables="true"/> 
+  
+    <!-- 自动扫描该包，使SpringMVC认为包下用了@controller注解的类是控制器 -->  
+    <context:component-scan base-package="com.yuer.test.controller*" /> 
+  	<context:component-scan base-package="com.yuer.spring.annotation*" /> 
+  	
+  	<bean id="rpe" class="com.yuer.spring.staticVersion.StaticVersion" init-method="init"/>
+  	
+  	<mvc:resources mapping="#{rpe.staticRoot}/static/css/**" location="/static/css/" cache-period="31536000"/>  
+    <mvc:resources mapping="#{rpe.staticRoot}/static/images/**" location="/static/images/"  cache-period="31536000"/>  
+    <mvc:resources mapping="#{rpe.staticRoot}/static/js/**" location="/static/js/"  cache-period="31536000"/>
+  	
+  	<mvc:interceptors>
+  		<mvc:interceptor>
+  			<mvc:mapping path="/**"/>
+  			<mvc:exclude-mapping path="/static/**"/>
+  			<bean class="com.yuer.spring.interceptor.LogInterceptor"/>
+  		</mvc:interceptor>
+  		<!-- <mvc:interceptor>
+  			<mvc:mapping path="/index/**"/>
+  			<mvc:exclude-mapping path="/test/**"/>
+  			<mvc:exclude-mapping path="/static/**"/>
+  			<bean class="com.yuer.spring.interceptor.IndexInterceptor"/>
+  		</mvc:interceptor> -->
+  		<mvc:interceptor>
+  			<mvc:mapping path="/test/**"/>
+  			<bean class="com.yuer.spring.interceptor.TestInterceptor"/>
+  		</mvc:interceptor>
+  	</mvc:interceptors>
+  	
+  	<bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+  		<property name="order" value="0"/>
+  		<property name="defaultContentType" value="text/html"/>
+  		<property name="ignoreAcceptHeader" value="true"/>
+  		<property name="favorPathExtension" value="false"/>
+  		<property name="favorParameter" value="true"/>
+  		<property name="parameterName" value="content"/>
+  		<property name="mediaTypes">
+  			<map>
+  				<entry key="html" value="text/html"/>
+  				<entry key="xml" value="application/xml"/>
+  				<entry key="json" value="application/json"/>
+  			</map>
+  		</property>
+  		<property name="defaultViews">
+  			<list>
+  				<bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+  				<bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+  					<property name="marshaller">
+  						<bean class="org.springframework.oxm.xstream.XStreamMarshaller"/>  
+  					</property>
+  				</bean>
+  			</list>
+  		</property>
+  	</bean>
+  	
+  	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+  		<property name="order" value="10"></property>
+  	</bean>
+  	
+    <!-- 定义跳转的文件的前后缀 ，视图模式配置 -->  
+    <bean  
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">  
+        <!-- 这里的配置我的理解是自动给后面action的方法return的字符串加上前缀和后缀，变成一个 可用的url地址 -->  
+        <property name="prefix" value="/WEB-INF/views/" />  
+        <property name="suffix" value=".jsp" />  
+    </bean>  
+  	
+  	
+  	<bean id="userExcel" class="com.yuer.spring.excel.UserExcel"></bean>
+  	
+    <!-- 配置文件上传，如果没有使用文件上传可以不用配置，当然如果不配，那么配置文件中也不必引入上传组件包 -->  
+    <!-- <bean id="multipartResolver"  
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+        默认编码  
+        <property name="defaultEncoding" value="utf-8" />  
+        文件大小最大值  
+        <property name="maxUploadSize" value="10485760000" />  
+        内存中的最大值  
+        <property name="maxInMemorySize" value="40960" />  
+    </bean>   -->
+</beans>
